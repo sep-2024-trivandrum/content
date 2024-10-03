@@ -1,0 +1,91 @@
+version: "3"
+services:
+  registry-sr:
+    image: registry-service
+    build: ./service-registry (3).zip_expanded/service-registry
+    ports:
+      - "8761:8761"
+    networks:
+      - app-network
+  
+  zipkin-sr:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - app-network
+  
+  config-sr:
+    image: config-server
+    build: ./config-server (2).zip_expanded/config-server
+    ports:
+      - "8088:8088"
+    networks:
+      - app-network
+    depends_on:
+      - registry-sr
+      - zipkin-sr
+  
+  api-gateway-sr:
+    image: api-gateway
+    build: ./api-gateway (1).zip_expanded/api-gateway
+    ports:
+      - "8060:8060"
+    networks:
+      - app-network
+    depends_on:
+      - registry-sr
+      - zipkin-sr
+      - config-sr
+
+  authentication-sr:
+    image: authentication-service
+    build: ./authentication-service.zip_expanded/authentication-service
+    ports:
+      - "8090:8090"
+    networks:
+      - app-network
+    depends_on:
+      - registry-sr
+      - zipkin-sr
+      - config-sr
+      - api-gateway-sr
+
+  department-sr:
+    image: department-service
+    build: ./department-service (4).zip_expanded/department-service
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+    depends_on:
+      - registry-sr
+      - zipkin-sr
+      - config-sr
+      - api-gateway-sr
+      - authentication-sr
+  
+  employee-sr:
+    image: employee-service
+    build: ./employee-service (3).zip_expanded/employee-service
+    ports:
+      - "8082:8082"
+    networks:
+      - app-network
+    depends_on:
+      - registry-sr
+      - zipkin-sr
+      - config-sr
+      - api-gateway-sr
+      - authentication-sr
+
+  # mysqldb:
+  #   image: mysql:8
+  #   networks:
+  #     - app-network
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=root
+  #     - MYSQL_DATABASE=organizationdb
+
+networks:
+  app-network:
